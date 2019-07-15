@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Flask,render_template, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import SQLAlchemyError
 from flask_socketio import SocketIO
 from flask_socketio import send, emit
 import json
@@ -59,8 +60,10 @@ def signup(jsonget):
         print(type(tmp_user))
         db.session.add(tmp_user)
         db.session.commit()
-    except: 
-        pass;
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        print(error)
+        return error
 
 
 @app.route('/')
@@ -78,7 +81,7 @@ def handle_my_custom_event(welcome):
 
 @socketio.on('json')
 def handle_json(json):
-    returnBoolean = { 'auth_boolean': True }
+    returnBoolean = { 'auth_boolean': True}
     print('received json: ' + str(json))
     try:
         if(json['name'] == ''):
@@ -109,7 +112,7 @@ def handle_my_custom_event(jsonrecv, methods=['GET', 'POST']):
             socketio.emit('auth_login', returnBoolean)
             print('after emit')
         else:
-            signup()
+            signup(json)
     except KeyError:
         pass;
     except TypeError:
