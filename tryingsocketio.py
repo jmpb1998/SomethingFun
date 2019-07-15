@@ -56,12 +56,11 @@ def login(jsonget, returnBoolean):
 def signup(jsonget): 
     try: 
         tmp_user = User(name = jsonget['name'], email = jsonget['email'], password = jsonget['password'])
+        print(type(tmp_user))
         db.session.add(tmp_user)
         db.session.commit()
     except: 
-        pass; 
-    
-    
+        pass;
 
 
 @app.route('/')
@@ -89,7 +88,8 @@ def handle_json(json):
             emit('auth_login', returnBoolean)
             print('after emit')
         else:
-            signup()
+            print('signup happening')
+            signup(json)
     except KeyError:
         pass;
     except TypeError:
