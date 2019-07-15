@@ -15,7 +15,7 @@ class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30), nullable=False)
-    username = db.Column(db.String(30), unique=True, nullable=False)
+    email = db.Column(db.String(30), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     datalist = db.relationship('Data', backref='user', lazy=True)
 
@@ -32,30 +32,32 @@ class Data(db.Model):
     def __repr__(self):
         return f"Data('{self.date}')"
     
-def login(jsonget):
+def login(jsonget, returnBoolean):
     user = User(email = jsonget['email'], password = jsonget['password'] )
     try: 
         user_id = User.query.filter_by(email = user.email).first()
         if user_id == None:
             # return False
             print("return False")
-            return false
+            returnBoolean['auth_boolean'] = False
+            return None
         else:
             if user.password == user_id.password: 
                 #return True
                 print('return true')
-                return true 
+                returnBoolean['auth_boolean'] = True
+                return None
     except: 
         pass;
     print('return false')
-    return false
+    returnBoolean['auth_boolean'] = False
+    return None
                 
 def signup(jsonget): 
-    user = User(name = jsonget['name'], email = jsonget['email'], password = jsonget['password'])
-    
     try: 
-        db.session.add(user)
-        
+        tmp_user = User(name = jsonget['name'], email = jsonget['email'], password = jsonget['password'])
+        db.session.add(tmp_user)
+        db.session.commit()
     except: 
         pass; 
     
@@ -71,36 +73,47 @@ def test_connect():
     print('connection success:')
     emit('after connect', {'data':'Lets dance'})
     
-@socketio.on('message')
-def handle_message(message):
-    print('received message: ' + message)
+@socketio.on('just_connected')
+def handle_my_custom_event(welcome):
+    print('received welcome: ' + welcome['data'])
 
 @socketio.on('json')
 def handle_json(json):
+    returnBoolean = { 'auth_boolean': True }
     print('received json: ' + str(json))
-    print(json)
-    #try:
-    if(json['name'] == ''):
-        print('doing Login')
-        auth_login = login(json)
-        print(tyupe(auth_login))
-        print(auth_login)
-        socketio.emit('auth_login', auth_login)
-    else:
-        signup()
+    try:
+        if(json['name'] == ''):
+            print('doing Login')
+            login(json, returnBoolean)
+            print( returnBoolean['auth_boolean'])
+            emit('auth_login', returnBoolean)
+            print('after emit')
+        else:
+            signup()
+    except KeyError:
+        pass;
+    except TypeError:
+        pass;
     send(json,json=True)
     #except AttributeError:
      #   print('skipped')
       #  pass
 @socketio.on('my event')
 def handle_my_custom_event(jsonrecv, methods=['GET', 'POST']):
+    returnBoolean = { 'auth_boolean': True }
     print('received my event: ' + str(jsonrecv))
-    print('doing Login')
-    auth_login = login(json)
-    print(tyupe(auth_login))
-    print(auth_login)
-    socketio.emit('auth_login', auth_login)
-    print("message received")
-
+    try:
+        if(json['name'] == ''):
+            print('doing Login')
+            login(json, returnBoolean)
+            socketio.emit('auth_login', returnBoolean)
+            print('after emit')
+        else:
+            signup()
+    except KeyError:
+        pass;
+    except TypeError:
+        pass;
+    send(json,json=True)
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0')
