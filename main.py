@@ -8,6 +8,12 @@ from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.core.window import Window
 import os
+import socketio 
+
+
+sio = socketio.Client()
+sio.connect('http://7c665d26.ngrok.io')
+
 
 class WifiWindow(Screen):
     ssid = ObjectProperty(None)
@@ -20,7 +26,7 @@ class WifiWindow(Screen):
     passwd_write = False
     
     def right_button(self):
-        sm.current = 'home'
+        sm.current = 'login'
     
     def ssid_focus(self):
         self.ssid_write = True
@@ -105,6 +111,86 @@ class HomeWindow(Screen):
 
     def createBtn(self):
         sm.current = "wifi"
+        
+    def logoutBtn(self):
+        sm.current = "login"
+
+class LoginWindow(Screen):
+
+    email = ObjectProperty(None)
+
+    password = ObjectProperty(None)
+
+    keys = ObjectProperty(None)
+    
+    caps = False
+    caps_locked = False
+    email_write = False
+    passwd_write = False
+    
+    @sio.on('auth_login')
+    def on_json(data):
+
+        print(data)
+        print(data['auth_boolean'])
+        if data['auth_boolean'] == 0:
+            sm.current = "home"
+
+    
+    def email_focus(self):
+        self.email_write = True
+        self.passwd_write = False
+        
+    def passwd_focus(self):
+        self.passwd_write = True
+        self.email_write = False
+        
+    def caps_lock(self):
+        if self.caps == False:
+            self.caps = True
+            self.caps_locked = True
+        else:
+            self.caps = False
+            self.caps_locked = False
+    
+    def button_caps(self):
+        if self.caps_locked == False:
+            self.caps = False
+            
+    def shift_caps(self):
+        self.caps = True
+    
+    def key_press(self, key):
+        if self.email_write == True:
+            if key == 'back':
+                sObject = slice(len(self.email.text) - 1)
+                self.email.text = self.email.text[sObject]
+            else:
+                if self.caps == True:
+                    self.email.text = self.email.text + key.upper()
+                else:
+                    self.email.text = self.email.text + key
+        if self.passwd_write == True:
+            if key == 'back':
+                sObject = slice(len(self.password.text) - 1)
+                self.password.text = self.password.text[sObject]
+            else:
+                if self.caps == True:
+                    self.password.text = self.password.text + key.upper()
+                else:
+                    self.password.text = self.password.text + key
+
+    
+
+
+    def loginBtn(self):
+
+        sio.emit('json', {'name': '', 'email': self.email.text, 'password': self.password.text})
+
+
+    def wifiBtn(self):
+
+        sm.current = "wifi"
 
 
 class MainWindow(Screen):
@@ -140,14 +226,13 @@ def invalidForm():
 
 
 kv = Builder.load_file("my.kv")
-
 sm = WindowManager()
 
-screens = [HomeWindow(name="home"), WifiWindow(name="wifi"),MainWindow(name="main")]
+screens = [HomeWindow(name="home"), WifiWindow(name="wifi"),MainWindow(name="main"), LoginWindow(name="login")]
 for screen in screens:
     sm.add_widget(screen)
 
-sm.current = "home"
+sm.current = "login"
 
 
 class MyMainApp(App):
