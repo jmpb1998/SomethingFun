@@ -90,7 +90,7 @@ class WifiWindow(Screen):
                     self.password.text = self.password.text + key
 
     def wifi_connect(self):
-        command = """sudo iwlist wlp2s0 scan | grep -ioE 'ssid:"(.*{}.*)'"""
+        command = """sudo iwlist wlan0 scan | grep -ioE 'ssid:"(.*{}.*)'"""
         result = os.popen(command.format(self.ssid.text))
         result = list(result)
 
