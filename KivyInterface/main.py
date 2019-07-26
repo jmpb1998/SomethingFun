@@ -11,10 +11,12 @@ from kivy.uix.popup import Popup
 import os
 import socketio
 
-
-sio = socketio.Client()
-sio.connect('http://7e88826a.ngrok.io')
-jsondata = { 'auth_boolean': 2, 'error': 'hi' }
+try:
+    sio = socketio.Client()
+    sio.connect('http://21f16a37.ngrok.io')
+    jsondata = { 'auth_boolean': 0, 'error': 'hi' }
+except:
+    print("Server is down")
 
 @sio.on('auth_login')
 def on_json(data):
@@ -167,6 +169,7 @@ class LoginWindow(Screen):
        '''
 
     def errorcall(self):
+        #jsondata = { 'auth_boolean': 0, 'error': 'hi' }
         print(jsondata)
         if jsondata['auth_boolean'] == 1:
             self.error.text = 'Email already registered'
@@ -226,7 +229,6 @@ class LoginWindow(Screen):
 
 
     def loginBtn(self):
-
         sio.emit('json', {'name': '', 'email': self.email.text, 'password': self.password.text})
 
 
