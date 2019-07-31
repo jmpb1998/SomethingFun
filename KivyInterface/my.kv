@@ -162,7 +162,7 @@
                 text:'-'
                 on_release:
                     root.key_press('-')
-                    root.button_caps()
+                    root.button_caps('_')
 
             Button:
                 pos_hint:{'x':0.75, 'y':0.3}
@@ -756,7 +756,7 @@
                 text:'-'
                 on_release:
                     root.key_press('-')
-                    root.button_caps()
+                    root.button_caps('_')
 
             Button:
                 pos_hint:{'x':0.75, 'y':0.3}
@@ -1272,5 +1272,5 @@
             size_hint:0.6,0.2
             text: "Stop"
             on_release:
-                app.root.current = "home"
+                #app.root.current = "home"
                 root.manager.transition.direction = "right"
