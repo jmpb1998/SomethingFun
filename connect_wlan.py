@@ -6,13 +6,13 @@ from flask_socketio import SocketIO
 from flask_socketio import send, emit
 import json
 from peewee import *
-from validate_email import validate_email
+#from validate_email import validate_email
 
 
 #initiate app
 app = Flask(__name__)
 #initiate database to the right path
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/joaobaptista/myproject/Database/example.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////root/maindata/SomethingFun-master/example.db'
 
 #create objects db(database) - socketio
 db = SQLAlchemy(app)
@@ -235,20 +235,29 @@ def upload(json_data, methods=['GET', 'POST']):
 
 
         #json_upload = {'alldata': tmp_user.datalist}
-        data = {}
-        data['alldata'] = tmp_user.datalist
-        json_upload = json.dumps(data)
-        emit('patientData', json_upload, callback = ack())
-        print('Successfully uploaded')
+        conclist = []
+        yearlist = []
+        monthlist = []
+        daylist = []
+        for info in tmp_user.datalist:
+            if not info.done:
+                conclist.append(info.concentration)
+                yearlist.append(info.year)
+                monthlist.append(info.month)
+                daylist.append(info.day)
+        data = { 'concentration': conclist, 'year': yearlist, 'month': monthlist, 'day': daylist}
+        emit('patientData', data, callback = ack())
+        print(tmp_user.datalist)
         for item in tmp_user.datalist:
             item.done = True
+        db.session.commit()
 
     except SQLAlchemyError as e:
         error = str(e.__dict__['orig'])
         print(error)
 
 def ack():
-    print ('message was received!')
+    print ('Successfully uploaded')
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0')
