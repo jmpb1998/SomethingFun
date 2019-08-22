@@ -579,7 +579,7 @@
                     root.right_button()
 
         Button:
-            pos_hint:{'x': 0.05, 'y':0.9}
+            pos_hint:{'x': 0.05, 'y':0.85}
             size_hint: 0.1, 0.1
             text:'Exit'
             on_release:
@@ -1140,15 +1140,23 @@
                     root.button_caps()
                     root.key_press('')
 
-        Button:
-            pos_hint:{"x":0.2,"y":0.4}
-            size_hint: 0.25, 0.1
-            text: "Submit"
-            font_size: (root.width**2 + root.height**2) / 14**4
-            on_release:
-                root.manager.transition.direction = "left"
-                root.loginBtn()
-                root.errorcall()
+	Button:
+	    pos_hint:{"x":0.6, "y":0.4}
+	    size_hint: 0.25, 0.1
+	    text: 'No account'
+	    on_release:
+            root.manager.transition.direction = "up"
+            root.nologin()
+
+	Button:
+	    pos_hint:{"x":0.2,"y":0.4}
+        size_hint: 0.25, 0.1
+        text: 'Submit'
+        font_size: (root.width**2 + root.height**2) / 14**4
+        on_release:
+            root.manager.transition.direction = "up"
+            root.loginBtn()
+            root.errorcall()
 
 
 
@@ -1186,7 +1194,7 @@
             anchor_y: 'center'
 
             Image:
-                source: 'images/ANA_logo.png'
+                source: 'images/ADA_LOGO.png'
                 pos_hint:{'x':0.5, 'y':0.5}
                 size_hint: None, None
                 size: 1000, 1000
@@ -1244,33 +1252,68 @@
 
 
 <MainWindow>:
-    n: n
-    email: email
-    created:created
+    data1: data1
+    data2: data2
+    
+    FloatLayout:
+        cols:1
+        canvas.before:
+            Color:
+                rgba: 0.09, 0.17, 0.34, 1
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
 
     FloatLayout:
         Label:
-            id: n
-            pos_hint:{"x": 0.1, "top":0.9}
+            pos_hint:{"x": 0.1, "top":0.95}
             size_hint:0.8, 0.2
-            text: "Data 1: "
+            text: "Concentration"
+            font_size: (root.width**2 + root.height**2) / 14**4
+        
+        Label:
+            id: data1
+            pos_hint:{"x": 0.1, "top":0.86}
+            size_hint:0.8, 0.2
+            text: "None"
+            font_size: (root.width**2 + root.height**2) / 14**4
+            
+        FloatLayout:
+        Label:
+            pos_hint:{"x": 0.1, "top":0.66}
+            size_hint:0.8, 0.2
+            text: "Concentration"
+            font_size: (root.width**2 + root.height**2) / 14**4
 
         Label:
-            id: email
-            pos_hint:{"x": 0.1, "top":0.7}
+            id: data2
+            pos_hint:{"x": 0.1, "top":0.57}
             size_hint:0.8, 0.2
-            text: "Data 2: "
-
-        Label:
-            id: created
-            pos_hint:{"x": 0.1, "top":0.5}
-            size_hint:0.8, 0.2
-            text: "Data 3: "
-
+            text: "None"
+            font_size: (root.width**2 + root.height**2) / 14**4
+            
         Button:
             pos_hint:{"x":0.2, "y": 0.1}
             size_hint:0.6,0.2
-            text: "Stop"
+            text: "Back"
+            font_size: (root.width**2 + root.height**2) / 14**4
             on_release:
-                #app.root.current = "home"
+                root.returnStart()
                 root.manager.transition.direction = "right"
+
+<LoadingWindow> 
+
+    FloatLayout:
+        cols:1
+        canvas.before:
+            Color:
+                rgba: 0.09, 0.17, 0.34, 1
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+    
+    Image:
+        source: 'images/tenor.gif'
+        size: self.texture_size
