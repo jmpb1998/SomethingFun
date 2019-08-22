@@ -10,10 +10,13 @@ from kivy.core.window import Window
 from kivy.uix.popup import Popup
 import os
 import socketio
+import json
+import kivy.animation 
+import time
 
 try:
     sio = socketio.Client()
-    sio.connect('http://21f16a37.ngrok.io')
+    sio.connect('http://d30c6238.ngrok.io')
     jsondata = { 'auth_boolean': 0, 'error': 'hi' }
 except:
     print("Server is down")
@@ -96,6 +99,8 @@ class WifiWindow(Screen):
 
         if "Device or resource busy" in result:
                 return None
+        elif result == None:
+            return None
         else:
             ssid_list = [item.lstrip('SSID:').strip('"\n') for item in result]
             print("Successfully get ssids {}".format(str(ssid_list)))
@@ -128,7 +133,7 @@ class HomeWindow(Screen):
     password = ObjectProperty(None)
 
     def loginBtn(self):
-        sm.current = "main"
+        sm.current = "load"
 
     def createBtn(self):
         sm.current = "wifi"
@@ -138,10 +143,9 @@ class HomeWindow(Screen):
 
     def startSensor(self):
         #path to python file of biosensor
-        os.chroot(path)
+        #os.chroot(path)
         os.system("python sensor.py")
-
-        print(os.listdir(path))
+        #print(os.listdir(path))
 
 class LoginWindow(Screen):
 
@@ -157,30 +161,6 @@ class LoginWindow(Screen):
     caps_locked = False
     email_write = False
     passwd_write = False
-    '''
-    @sio.on('auth_login')
-    def on_json(data):
-        print(data)
-        print(data['auth_boolean'])
-        if data['auth_boolean'] == 0:
-            sm.current = "home"
-        else:
-            LoginWindow.errorcall()
-       '''
-
-    def errorcall(self):
-        #jsondata = { 'auth_boolean': 0, 'error': 'hi' }
-        print(jsondata)
-        if jsondata['auth_boolean'] == 1:
-            self.error.text = 'Email already registered'
-        if jsondata['auth_boolean'] == 2:
-            self.error.text = 'Wrong email or password'
-        if jsondata['auth_boolean'] == 3:
-            self.error.text = 'Empty field'
-        if jsondata['auth_boolean'] == 4:
-            self.error.text = 'Server Error'
-        if jsondata['auth_boolean'] == 5:
-            self.error.text = 'Email not valid'
 
     def email_focus(self):
         self.email_write = True
@@ -240,23 +220,41 @@ class LoginWindow(Screen):
 
 
 class MainWindow(Screen):
-    n = ObjectProperty(None)
-    created = ObjectProperty(None)
-    email = ObjectProperty(None)
-    current = ""
+    data1 = ObjectProperty(None)
+    data2 = ObjectProperty(None)
 
     def logOut(self):
         sm.current = "login"
 
     def on_enter(self, *args):
-        pass
+        with open('data.json', 'r') as fileObject:
+            fileData = json.load(fileObject)
+            self.data1.text = str(fileData['concentration'])
+            self.data2.text = str(fileData['somethingElse'])
+        os.system('rm -rf data.json')
+            
+    def returnStart(self):
+        sm.current = "home"
 
-class P(Screen):
-    error = ObjectProperty(None)
 
-    def returnlogin(self):
-        popup.dismiss()
-
+class LoadingWindow(Screen): 
+    
+    def on_enter(self): 
+        os.system("python sensor.py")
+        sm.current = 'wifi'
+        done = False
+        while(done == False):
+            try:
+                with open('data.json', 'r') as fileObject:
+                    fileData = json.load(fileObject)
+                    if(fileData['concentration'] != None):
+                        done = True
+            except:
+                pass
+        
+        sm.current = 'main'
+                    
+                
 
 class WindowManager(ScreenManager):
     pass
@@ -265,7 +263,7 @@ kv = Builder.load_file("my.kv")
 sm = WindowManager()
 
 
-screens = [HomeWindow(name="home"), WifiWindow(name="wifi"),MainWindow(name="main"), LoginWindow(name="login"), HomePage(name="first_page")]
+screens = [HomeWindow(name="home"), WifiWindow(name="wifi"),MainWindow(name="main"), LoginWindow(name="login"), LoadingWindow(name="load"), HomePage(name="first_page")]
 for screen in screens:
     sm.add_widget(screen)
 
