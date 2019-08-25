@@ -1159,19 +1159,24 @@
             root.errorcall()
 
 
-
-
-        Screen:
-            Image:
-                #background_color: (.09, .17, .34, 1.0)
-                pos_hint:{'x':0.01, 'y':0.85}
-                size_hint: 0.25, 0.1
-                source: 'images/wifi_symbol_4.png'
-
+    Screen:
+        Image:
+            canvas.before:
+                Color:
+                    rgba: 0.09, 0.17, 0.34, 1
+                Rectangle:
+                    # self here refers to the widget i.e BoxLayout
+                    pos: self.pos
+                    size: self.size
+                    
+            background_color: (.09, .17, .34, 1.0)
+            pos_hint:{'x':0.05, 'y':0.85}
+            size_hint: 0.1, 0.15
+            source: 'images/wifi_symbol_4.png'
         Button:
             background_color: (.09, .17, .34, .0)
             pos_hint:{'x':0.05, 'y':0.85}
-            size_hint: 0.25, 0.1
+            size_hint: 0.1, 0.15
             text: ""
             on_release:
                 root.manager.transition.direction = "right"
