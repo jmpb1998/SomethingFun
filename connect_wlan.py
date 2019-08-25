@@ -48,7 +48,7 @@ class Data(db.Model):
 
     done = db.Column(db.Boolean, default = False)
     #refers to the User who owns the data
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.email'))
 
 
 
@@ -64,7 +64,7 @@ def login(jsonget, returnBoolean):
             # return False
             print (user_id)
             print("return False")
-            returnBoolean['auth_boolean'] = False
+            #returnBoolean['auth_boolean'] = False
             return 2
         else:
             if user.password == user_id.password:
@@ -206,16 +206,17 @@ def handle_data_request(json_request, methods=['GET', 'POST']):
 
 @socketio.on('pi2database')
 def store(json_data, methods=['GET', 'POST']):
+    print(json_data)
     print('Storing data from PI')
     try:
         user_email = json_data['email']
         user_concentration = json_data['concentration']
         #user_id = User.query.filter_by(email = user_email).first()
-        tmp_data = Data(concentration = user_concentration, email = user_email)
+        tmp_data = Data(concentration = user_concentration, user_id = user_email)
         db.session.add(tmp_data)
         db.session.commit()
         print('Successfully stored data')
-    except SQLAlchemyError as e:
+    except (SQLAlchemyError, TypeError) as e:
         error = str(e.__dict__['orig'])
         print(error)
 
@@ -227,14 +228,6 @@ def upload(json_data, methods=['GET', 'POST']):
         user_email = json_data['email']
         print(user_email)
         tmp_user = User.query.filter_by(email = user_email).first()
-
-        '''listUpload = []
-        for item in tmp_user.datalist:
-            if item.done == False:
-                listUpload.append(item)'''
-
-
-        #json_upload = {'alldata': tmp_user.datalist}
         conclist = []
         yearlist = []
         monthlist = []
@@ -246,13 +239,19 @@ def upload(json_data, methods=['GET', 'POST']):
                 monthlist.append(info.month)
                 daylist.append(info.day)
         data = { 'concentration': conclist, 'year': yearlist, 'month': monthlist, 'day': daylist}
-        emit('patientData', data, callback = ack())
+        dataarray = [conclist, yearlist, monthlist, daylist]
+            
+        dumpsdata = json.dumps(data)
+        
+        jsonobject = { 'everything': [ {'concentration': conclist}, {'year': yearlist}, {'month': monthlist}, {'day': daylist} ]}
+                                                                                        
+        emit('patientData', jsonobject, callback = ack())
         print(tmp_user.datalist)
         for item in tmp_user.datalist:
             item.done = True
-        db.session.commit()
+        #db.session.commit()
 
-    except SQLAlchemyError as e:
+    except (SQLAlchemyError, TypeError, KeyError) as e:
         error = str(e.__dict__['orig'])
         print(error)
 
